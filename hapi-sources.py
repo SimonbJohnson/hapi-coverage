@@ -24,10 +24,10 @@ def fetch_data(base_url, limit=1000):
             print(f"Getting results {offset} to {offset+limit-1}")
             json_response = json.loads(response.read())
 
-            results.extend(json_response)
+            results.extend(json_response['data'])
 
             # If the returned results are less than the limit, it's the last page
-            if len(json_response) < limit:
+            if len(json_response['data']) < limit:
                 break
 
         idx += 1
@@ -118,7 +118,7 @@ all_countries = []
 for theme in THEMES:
     print(f'Getting results for {theme}')
     coverage[theme] = {}
-    theme_url = f"{BASE_URL}{theme}?output_format=json"
+    theme_url = f"{BASE_URL}{theme}?output_format=json&app_identifier=Y292ZXJhZ2Vfc2NyaXB0OnNpbW9uLmpvaG5zb25AdW4ub3Jn"
     results = fetch_data(theme_url, LIMIT)
     countries = {}
     for row in results:
@@ -134,15 +134,18 @@ for theme in THEMES:
 output = ''
 
 for theme in coverage:
-    theme_table = [['Country','Source']]
+    theme_table = [['Country','Dataset','Source']]
     for country in coverage[theme]:
         data_source_str = ''
+        data_provider = ''
         for index, resource in enumerate(coverage[theme][country]):
-            base_url = f'https://stage.hapi-humdata-org.ahconu.org/api/resource?hdx_id={resource}&update_date_min=2020-01-01&update_date_max=2024-12-31&output_format=json'
+            base_url = f'https://stage.hapi-humdata-org.ahconu.org/api/resource?hdx_id={resource}&update_date_min=2020-01-01&update_date_max=2024-12-31&output_format=json&app_identifier=Y292ZXJhZ2Vfc2NyaXB0OnNpbW9uLmpvaG5zb25AdW4ub3Jn'
             data = fetch_data(base_url, LIMIT)
             resource_data = data[0]
-            data_source_str = data_source_str + f"Dataset: [{resource_data['dataset_title']}]({resource_data['hdx_link']}),Provider: {resource_data['dataset_hdx_provider_name']} "
-            theme_table.append([country,data_source_str])
+            data_source_str = data_source_str + f" [{resource_data['dataset_title']}]({resource_data['hdx_link']})"
+            
+            data_provider = data_provider + f" {resource_data['dataset_hdx_provider_name']}"
+            theme_table.append([country,data_source_str,data_provider])
 
     print(f'## {theme}')
     print(make_markdown_table(theme_table,'center'))
