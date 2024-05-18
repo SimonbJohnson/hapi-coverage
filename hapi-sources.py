@@ -138,14 +138,18 @@ for theme in coverage:
     for country in coverage[theme]:
         data_source_str = ''
         data_provider = ''
-        for index, resource in enumerate(coverage[theme][country]):
+        prev_resource = ''
+        for index, resource in enumerate(coverage[theme][country]): 
             base_url = f'https://stage.hapi-humdata-org.ahconu.org/api/resource?hdx_id={resource}&update_date_min=2020-01-01&update_date_max=2024-12-31&output_format=json&app_identifier=Y292ZXJhZ2Vfc2NyaXB0OnNpbW9uLmpvaG5zb25AdW4ub3Jn'
             data = fetch_data(base_url, LIMIT)
             resource_data = data[0]
-            data_source_str = data_source_str + f" [{resource_data['dataset_title']}]({resource_data['hdx_link']})"
-            
-            data_provider = data_provider + f" {resource_data['dataset_hdx_provider_name']}"
-            theme_table.append([country,data_source_str,data_provider])
+            if resource_data['dataset_title']!=prev_resource:
+                prev_resource = resource_data['dataset_title']
+                data_source_str = data_source_str + f" [{resource_data['dataset_title']}]({resource_data['hdx_link']})"
+                
+                data_provider = data_provider + f" {resource_data['dataset_hdx_provider_name']}"
+        
+        theme_table.append([country,data_source_str,data_provider])
 
     print(f'## {theme}')
     print(make_markdown_table(theme_table,'center'))
