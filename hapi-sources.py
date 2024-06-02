@@ -1,5 +1,7 @@
 import urllib.request
+from urllib.error import URLError, HTTPError
 import json
+import sys
 
 def fetch_data(base_url, limit=1000):
     """
@@ -20,15 +22,22 @@ def fetch_data(base_url, limit=1000):
         offset = idx * limit
         url = f"{base_url}&offset={offset}&limit={limit}"
         print(url)
-        with urllib.request.urlopen(url) as response:
-            print(f"Getting results {offset} to {offset+limit-1}")
-            json_response = json.loads(response.read())
+        try:
+            response = urllib.request.urlopen(url)
+        except HTTPError as e:
+            print('Error code: ', e.code)
+        except URLError as e:
+            print('Reason: ', e.reason)
+        print(f"Getting results {offset} to {offset+limit-1}")
 
-            results.extend(json_response['data'])
 
-            # If the returned results are less than the limit, it's the last page
-            if len(json_response['data']) < limit:
-                break
+        json_response = json.loads(response.read())
+
+        results.extend(json_response['data'])
+
+        # If the returned results are less than the limit, it's the last page
+        if len(json_response['data']) < limit:
+            break
 
         idx += 1
 
@@ -107,9 +116,10 @@ def create_table_data(coverage,themes,countries):
 
 
 
-THEMES = ['3w','population','food_security','national_risk','humanitarian_needs']
+THEMES = ['coordination-context/conflict-event','food/food-price','food/food-security','coordination-context/funding','affected-people/humanitarian-needs','coordination-context/national-risk','coordination-context/operational-presence','population-social/population','population-social/poverty-rate','affected-people/refugees',]
+THEMES = ['coordination-context/conflict-event']
 
-BASE_URL = "https://stage.hapi-humdata-org.ahconu.org/api/themes/"
+BASE_URL = "https://stage.hapi-humdata-org.ahconu.org/api/v1/"
 LIMIT = 10000
 
 coverage = {}
@@ -134,13 +144,16 @@ for theme in THEMES:
 output = ''
 
 for theme in coverage:
+    print(theme)
     theme_table = [['Country','Dataset','Source']]
     for country in coverage[theme]:
+        print(country)
         data_source_str = ''
         data_provider = ''
         prev_resource = ''
         for index, resource in enumerate(coverage[theme][country]): 
-            base_url = f'https://stage.hapi-humdata-org.ahconu.org/api/resource?hdx_id={resource}&update_date_min=2020-01-01&update_date_max=2024-12-31&output_format=json&app_identifier=Y292ZXJhZ2Vfc2NyaXB0OnNpbW9uLmpvaG5zb25AdW4ub3Jn'
+            print(resource)
+            base_url = f'https://stage.hapi-humdata-org.ahconu.org/api/v1/metadata/resource?hdx_id={resource}&update_date_min=2020-01-01&update_date_max=2024-12-31&output_format=json&app_identifier=Y292ZXJhZ2Vfc2NyaXB0OnNpbW9uLmpvaG5zb25AdW4ub3Jn'
             data = fetch_data(base_url, LIMIT)
             resource_data = data[0]
             if resource_data['dataset_title']!=prev_resource:

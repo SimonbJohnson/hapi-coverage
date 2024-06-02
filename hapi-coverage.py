@@ -118,7 +118,7 @@ def create_table_data(coverage,themes,countries):
 
 #THEMES = ['coordination-context/conflict-event','food/food-price','food/food-security','coordination-context/funding','affected-people/humanitarian-needs','coordination-context/national-risk','coordination-context/operational-presence','population-social/population','population-social/poverty-rate','affected-people/refugees',]
 THEMES = ['coordination-context/conflict-event','food/food-price','food/food-security','coordination-context/funding','affected-people/humanitarian-needs','coordination-context/national-risk','coordination-context/operational-presence','population-social/population','population-social/poverty-rate']
-#THEMES = ['coordination-context/conflict-event']
+#THEMES = ['food/food-price']
 THEME_HEADERS = ['Conflict Events','Food Price','Food Security','Funding','Humanitarian Needs','National Risk','Operational Presence (3W)','Population','Poverty Rate','Refugees']
 BASE_URL = "https://stage.hapi-humdata-org.ahconu.org/api/v1/"
 LIMIT = 10000
@@ -133,9 +133,7 @@ for theme in THEMES:
 	results = fetch_data(theme_url, LIMIT)
 	countries = {}
 	for row in results:
-		print(row)
 		if row['location_name'] not in countries:
-			print('add new country')
 			countries[row['location_name']] = {'name':row['location_name'],'coverage':0}
 		else:
 			if 'admin1_name' in row:
@@ -153,8 +151,6 @@ for theme in THEMES:
 					countries[row['location_name']]['coverage']=4
 		if row['location_name'] not in all_countries:
 			all_countries.append(row['location_name'])
-
-		print(countries)
 
 	for country in countries:
 		coverage[theme][country] = ({'country':countries[country]['name'],'coverage':countries[country]['coverage']})
